@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelApp Admin</title>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #012169; --red: #C8102E; --gold: #C5A028;
+    --cream: #FAF7F2; --ink: #1A1A1A; --muted: #6B6B6B;
+    --light: #F0EDE8; --white: #fff;
+    --border: rgba(0,0,0,0.12);
+    --radius: 6px;
+  }
+  body { background: var(--cream); color: var(--ink); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.5; }
+  h1,h2,h3 { font-weight: 700; line-height: 1.2; }
+  h1 { font-size: 22px; } h2 { font-size: 17px; } h3 { font-size: 14px; }
+  a { color: var(--blue); }
+
+  /* Layout */
+  .topbar { background: var(--blue); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .topbar h1 { font-size: 18px; flex: 1; }
+  .topbar-sub { font-size: 12px; opacity: 0.65; }
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: none; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: #023082; }
+  .btn-red { background: var(--red); color: white; }
+  .btn-red:hover { background: #a00d23; }
+  .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--ink); }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+  .btn-ghost { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+  .btn-ghost:hover { background: var(--light); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon { padding: 6px; min-width: 30px; justify-content: center; }
+
+  /* Forms */
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], input[type=date], input[type=number], input[type=color], input[type=url], input[type=password], textarea, select {
+    width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-family: inherit; font-size: 13px; color: var(--ink); background: white;
+    outline: none; transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+  textarea { resize: vertical; min-height: 70px; }
+  input[type=color] { padding: 2px 4px; height: 36px; cursor: pointer; }
+  .field-row { display: grid; gap: 12px; }
+  .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* Cards */
+  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; background: var(--light); border-radius: 8px; padding: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 80px; padding: 7px 10px; border-radius: 6px; border: none; background: none; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--muted); text-align: center; white-space: nowrap; }
+  .tab.active { background: white; color: var(--blue); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+  /* Trip cards on home */
+  .trip-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; display: flex; align-items: center; gap: 16px; }
+  .trip-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); border-color: var(--blue); }
+  .trip-flag { font-size: 36px; flex-shrink: 0; }
+  .trip-name { font-size: 17px; font-weight: 700; }
+  .trip-dates { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Event type selector */
+  .type-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+  .type-opt { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); cursor: pointer; font-size: 12px; background: white; user-select: none; }
+  .type-opt.sel { border-color: var(--blue); background: #EEF2FF; color: var(--blue); font-weight: 600; }
+  .type-opt input { display: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-blue { background: var(--blue); }
+  .dot-red { background: var(--red); }
+  .dot-gold { background: var(--gold); }
+  .dot-star { background: white; border: 2px solid var(--blue); }
+
+  /* Day accordion */
+  .day-accordion { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .day-acc-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: white; cursor: pointer; user-select: none; }
+  .day-acc-header:hover { background: var(--light); }
+  .day-num-badge { background: var(--blue); color: white; border-radius: 4px; padding: 3px 9px; font-size: 13px; font-weight: 700; flex-shrink: 0; font-family: monospace; }
+  .day-acc-body { padding: 14px; background: #FAFAFA; border-top: 1px solid var(--border); }
+
+  /* Event rows */
+  .event-row { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+  .event-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .event-type-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 10px; }
+  .tb-visit { background: #EEF2FF; color: var(--blue); }
+  .tb-booked { background: #FEE; color: var(--red); }
+  .tb-meal { background: #FFF8E7; color: #8B6914; }
+  .tb-logistics { background: var(--light); color: var(--muted); }
+
+  /* Badge selector for checklist */
+  .badge-sel { display: flex; gap: 6px; }
+  .badge-opt { padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; cursor: pointer; border: 2px solid transparent; }
+  .badge-opt.sel-badge { box-shadow: 0 0 0 2px var(--blue); }
+
+  /* Alerts */
+  .alert { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; }
+  .alert-error { background: #FFF0F0; border: 1px solid var(--red); color: #7f1d1d; }
+  .alert-success { background: #F0FFF4; border: 1px solid #22c55e; color: #14532d; }
+  .alert-info { background: #EEF2FF; border: 1px solid var(--blue); color: var(--blue); }
+
+  /* Upload zone */
+  .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color 0.15s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--blue); color: var(--blue); }
+  .upload-zone input { display: none; }
+
+  /* Misc */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .row { display: flex; align-items: flex-start; gap: 10px; }
+  .mono { font-family: monospace; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .text-sm { font-size: 12px; }
+  [x-cloak] { display: none !important; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body x-data="admin()" x-cloak>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <h1>TravelApp Admin</h1>
+  <template x-if="screen !== 'auth'">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="topbar-sub" x-text="repo"></span>
+      <button class="btn btn-outline btn-sm" @click="goHome()" x-show="screen === 'editor'">← Viaggi</button>
+      <button class="btn btn-outline btn-sm" @click="logout()">Esci</button>
+    </div>
+  </template>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="container" x-show="screen === 'auth'">
+  <div style="max-width:440px;margin:40px auto;">
+    <h2 style="margin-bottom:6px;">Accesso Admin</h2>
+    <p class="muted text-sm" style="margin-bottom:24px;">Inserisci il tuo GitHub Personal Access Token per gestire i viaggi.</p>
+    <div class="card">
+      <div class="field">
+        <label>Repository GitHub</label>
+        <input type="text" x-model="repoInput" placeholder="es. frabarz17/TravelApp">
+        <div class="field-hint">Formato: nome-utente/nome-repo</div>
+      </div>
+      <div class="field">
+        <label>Personal Access Token (PAT)</label>
+        <input type="password" x-model="patInput" placeholder="ghp_…" @keydown.enter="login()">
+        <div class="field-hint">Scope richiesto: <span class="mono">repo</span> (Contents read+write). <a href="https://github.com/settings/tokens/new" target="_blank">Crea token ↗</a></div>
+      </div>
+      <div class="alert alert-error" x-show="authError" x-text="authError"></div>
+      <button class="btn btn-primary" @click="login()" :disabled="loading">
+        <span x-show="loading" class="spinner"></span>
+        <span x-text="loading ? 'Verifica…' : 'Accedi'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="container" x-show="screen === 'home'">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <h2>I tuoi viaggi</h2>
+    <button class="btn btn-primary" @click="newTrip()">+ Nuovo viaggio</button>
+  </div>
+  <div class="alert alert-error" x-show="error" x-text="error"></div>
+  <template x-if="trips.length === 0 && !loading">
+    <div class="alert alert-info">Nessun viaggio trovato. Crea il primo viaggio con il pulsante sopra.</div>
+  </template>
+  <template x-for="t in trips" :key="t.id">
+    <div class="trip-card" style="margin-bottom:12px;" @click="editTrip(t.id)">
+      <div class="trip-flag" x-text="t.flag || '✈'"></div>
+      <div style="flex:1;">
+        <div class="trip-name" x-text="t.name"></div>
+        <div class="trip-dates" x-text="t.dates"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-outline btn-sm" @click.stop="setActive(t.id)"
+          :style="activeId === t.id ? 'border-color:var(--blue);color:var(--blue);' : ''">
+          <span x-text="activeId === t.id ? '✓ Attivo' : 'Imposta attivo'"></span>
+        </button>
+        <button class="btn btn-ghost btn-sm" @click.stop="deleteTrip(t.id)">Elimina</button>
+      </div>
+    </div>
+  </template>
+</div>
+
+<!-- EDITOR SCREEN -->
+<div class="container" x-show="screen === 'editor'">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <h2 x-text="(trip && trip.meta) ? trip.meta.name : 'Nuovo viaggio'"></h2>
+    <div style="flex:1;"></div>
+    <span class="text-sm muted" x-text="saveStatus === 'saving' ? 'Salvataggio…' : saveStatus === 'saved' ? '✓ Salvato' : saveStatus === 'error' ? '⚠ Errore salvataggio' : ''"></span>
+    <button class="btn btn-primary" @click="saveTrip()" :disabled="saving">
+      <span x-show="saving" class="spinner"></span>
+      <span x-text="saving ? 'Salvo…' : 'Salva'"></span>
+    </button>
+  </div>
+  <div class="alert alert-error" x-show="error" x-text="error"></div>
+
+  <template x-if="trip">
+    <div>
+      <div class="tabs">
+        <button class="tab" :class="{ active: tab === 'meta' }" @click="tab = 'meta'">Meta & Tema</button>
+        <button class="tab" :class="{ active: tab === 'hotel' }" @click="tab = 'hotel'">Hotel</button>
+        <button class="tab" :class="{ active: tab === 'voli' }" @click="tab = 'voli'">Voli</button>
+        <button class="tab" :class="{ active: tab === 'giorni' }" @click="tab = 'giorni'">Giorni & Eventi</button>
+        <button class="tab" :class="{ active: tab === 'biglietti' }" @click="tab = 'biglietti'">Biglietti</button>
+        <button class="tab" :class="{ active: tab === 'info' }" @click="tab = 'info'">Info Locale</button>
+        <button class="tab" :class="{ active: tab === 'mappe' }" @click="tab = 'mappe'">Mappe</button>
+      </div>
+
+      <!-- TAB: META & TEMA -->
+      <div x-show="tab === 'meta'">
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Informazioni generali</h3>
+          <div class="field-row cols-2">
+            <div class="field"><label>Nome viaggio</label><input type="text" x-model="trip.meta.name" placeholder="es. Londra 2026"></div>
+            <div class="field"><label>Sottotitolo</label><input type="text" x-model="trip.meta.subtitle" placeholder="es. Il Nostro Viaggio"></div>
+          </div>
+          <div class="field-row cols-3">
+            <div class="field"><label>Destinazione</label><input type="text" x-model="trip.meta.destination" placeholder="es. London"></div>
+            <div class="field"><label>Paese</label><input type="text" x-model="trip.meta.country" placeholder="es. United Kingdom"></div>
+            <div class="field"><label>Bandiera (emoji)</label><input type="text" x-model="trip.meta.flag" placeholder="🇬🇧" style="font-size:20px;"></div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field"><label>Data inizio</label><input type="date" x-model="trip.meta.startDate"></div>
+            <div class="field"><label>Data fine</label><input type="date" x-model="trip.meta.endDate"></div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field"><label>Adulti</label><input type="number" x-model.number="trip.meta.travelers.adults" min="1" max="10"></div>
+            <div class="field">
+              <label>Età bambini (separati da virgola)</label>
+              <input type="text" :value="(trip.meta.travelers.children || []).join(', ')"
+                @change="trip.meta.travelers.children = $event.target.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))"
+                placeholder="es. 7, 9">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Tema colori</h3>
+          <div class="field-row cols-3">
+            <div class="field">
+              <label>Colore primario (blue)</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" x-model="trip.meta.theme.primary" style="width:50px;">
+                <input type="text" x-model="trip.meta.theme.primary" style="font-family:monospace;">
+              </div>
+            </div>
+            <div class="field">
+              <label>Colore accento (red)</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" x-model="trip.meta.theme.accent" style="width:50px;">
+                <input type="text" x-model="trip.meta.theme.accent" style="font-family:monospace;">
+              </div>
+            </div>
+            <div class="field">
+              <label>Colore oro</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" x-model="trip.meta.theme.gold" style="width:50px;">
+                <input type="text" x-model="trip.meta.theme.gold" style="font-family:monospace;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Convertitore valute</h3>
+          <p class="text-sm muted" style="margin-bottom:14px;">Valuta locale (del posto visitato) e valuta di casa.</p>
+          <div class="field-row cols-2">
+            <div class="card" style="padding:14px;">
+              <h3 style="margin-bottom:10px;">Valuta locale</h3>
+              <div class="field"><label>Codice ISO</label><input type="text" x-model="trip.meta.currency.local.code" placeholder="GBP"></div>
+              <div class="field"><label>Bandiera</label><input type="text" x-model="trip.meta.currency.local.flag" placeholder="🇬🇧"></div>
+              <div class="field"><label>Nome</label><input type="text" x-model="trip.meta.currency.local.label" placeholder="Sterline"></div>
+            </div>
+            <div class="card" style="padding:14px;">
+              <h3 style="margin-bottom:10px;">Valuta di casa</h3>
+              <div class="field"><label>Codice ISO</label><input type="text" x-model="trip.meta.currency.home.code" placeholder="EUR"></div>
+              <div class="field"><label>Bandiera</label><input type="text" x-model="trip.meta.currency.home.flag" placeholder="🇪🇺"></div>
+              <div class="field"><label>Nome</label><input type="text" x-model="trip.meta.currency.home.label" placeholder="Euro"></div>
+            </div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field"><label>Tasso fallback offline (1 locale = X casa)</label><input type="number" x-model.number="trip.meta.currency.fallbackRate" step="0.01"></div>
+            <div class="field">
+              <label>Importi rapidi (separati da virgola)</label>
+              <input type="text" :value="(trip.meta.currency.quickAmounts || []).join(', ')"
+                @change="trip.meta.currency.quickAmounts = $event.target.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))"
+                placeholder="5, 10, 20, 50">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: HOTEL -->
+      <div x-show="tab === 'hotel'">
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Hotel</h3>
+          <div class="field-row cols-2">
+            <div class="field"><label>Nome hotel</label><input type="text" x-model="trip.hotel.name"></div>
+            <div class="field"><label>Zona</label><input type="text" x-model="trip.hotel.zone" placeholder="es. Kensington"></div>
+          </div>
+          <div class="field"><label>Indirizzo completo</label><input type="text" x-model="trip.hotel.address"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Landmark vicini</h3>
+            <button class="btn btn-outline btn-sm" @click="trip.hotel.landmarks.push({ name: '', distanceMin: 10 })">+ Aggiungi</button>
+          </div>
+          <template x-for="(lm, i) in trip.hotel.landmarks" :key="i">
+            <div class="field-row cols-2" style="margin-bottom:8px;align-items:end;">
+              <div class="field" style="margin:0;"><label x-show="i===0">Nome posto</label><input type="text" x-model="lm.name" placeholder="es. Science Museum"></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div class="field" style="margin:0;flex:1;"><label x-show="i===0">Minuti a piedi</label><input type="number" x-model.number="lm.distanceMin" min="1"></div>
+                <button class="btn btn-ghost btn-icon" @click="trip.hotel.landmarks.splice(i,1)" style="margin-top:auto;">✕</button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- TAB: VOLI -->
+      <div x-show="tab === 'voli'">
+        <template x-for="[legKey, isReturn] in [['outbound', false], ['return', true]]" :key="legKey">
+          <div class="card" :style="isReturn ? 'border-left: 4px solid var(--red);' : 'border-left: 4px solid var(--blue);'">
+            <h3 style="margin-bottom:14px;" x-text="isReturn ? 'Volo di ritorno' : 'Volo di andata'"></h3>
+            <div class="field-row cols-3">
+              <div class="field"><label>Numero volo</label><input type="text" :x-model="`trip.flights.${legKey}.flightNumber`" x-model="trip.flights[legKey].flightNumber" placeholder="EZY8304"></div>
+              <div class="field"><label>Compagnia</label><input type="text" x-model="trip.flights[legKey].airline" placeholder="easyJet"></div>
+              <div class="field"><label>Data</label><input type="date" x-model="trip.flights[legKey].date"></div>
+            </div>
+            <div class="field-row cols-2">
+              <div class="card" style="padding:12px;">
+                <h3 style="margin-bottom:8px;">Partenza</h3>
+                <div class="field-row cols-3">
+                  <div class="field"><label>IATA</label><input type="text" x-model="trip.flights[legKey].from.iata" placeholder="MXP" style="font-family:monospace;"></div>
+                  <div class="field"><label>Terminal</label><input type="text" x-model="trip.flights[legKey].from.terminal"></div>
+                  <div class="field"><label>Orario</label><input type="text" x-model="trip.flights[legKey].from.time" placeholder="10:30"></div>
+                </div>
+              </div>
+              <div class="card" style="padding:12px;">
+                <h3 style="margin-bottom:8px;">Arrivo</h3>
+                <div class="field-row cols-3">
+                  <div class="field"><label>IATA</label><input type="text" x-model="trip.flights[legKey].to.iata" placeholder="LGW" style="font-family:monospace;"></div>
+                  <div class="field"><label>Terminal</label><input type="text" x-model="trip.flights[legKey].to.terminal"></div>
+                  <div class="field"><label>Orario</label><input type="text" x-model="trip.flights[legKey].to.time" placeholder="11:30"></div>
+                </div>
+              </div>
+            </div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <label>URL tracking FlightRadar24</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="url" x-model="trip.flights[legKey].trackingUrl">
+                  <button class="btn btn-outline btn-sm" @click="window.open(trip.flights[legKey].trackingUrl, '_blank')">↗</button>
+                </div>
+                <div class="field-hint">Formato: https://www.flightradar24.com/data/flights/ezy8304</div>
+              </div>
+              <div class="field"><label>Durata</label><input type="text" x-model="trip.flights[legKey].duration" placeholder="~2h"></div>
+            </div>
+            <div class="field"><label>Titolo checklist</label><input type="text" x-model="trip.flights[legKey].checklistTitle"></div>
+            <div class="field"><label>Nota importante</label><textarea x-model="trip.flights[legKey].note" rows="2" placeholder="es. ⚠️ Il Gatwick Express arriva al Terminal Sud…"></textarea></div>
+
+            <div class="divider"></div>
+            <div class="card-header"><h3>Checklist volo</h3>
+              <button class="btn btn-outline btn-sm" @click="trip.flights[legKey].checklist.push({ badge: '', badgeStyle: 'blue', text: '' })">+ Voce</button>
+            </div>
+            <template x-for="(ck, ci) in trip.flights[legKey].checklist" :key="ci">
+              <div class="event-row" style="margin-bottom:6px;">
+                <div class="field-row" style="grid-template-columns:90px 120px 1fr 28px;gap:8px;align-items:center;">
+                  <div class="field" style="margin:0;"><input type="text" x-model="ck.badge" placeholder="08:00" style="font-family:monospace;"></div>
+                  <div class="field" style="margin:0;">
+                    <select x-model="ck.badgeStyle">
+                      <option value="blue">Blue</option>
+                      <option value="gold">Gold</option>
+                      <option value="red">Red</option>
+                      <option value="muted">Grigio</option>
+                    </select>
+                  </div>
+                  <div class="field" style="margin:0;"><input type="text" x-model="ck.text"></div>
+                  <button class="btn btn-ghost btn-icon" @click="trip.flights[legKey].checklist.splice(ci,1)">✕</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- TAB: GIORNI & EVENTI -->
+      <div x-show="tab === 'giorni'">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+          <button class="btn btn-primary" @click="addDay()">+ Aggiungi giorno</button>
+        </div>
+        <template x-for="(day, di) in trip.days" :key="di">
+          <div class="day-accordion">
+            <div class="day-acc-header" @click="toggleDay(di)">
+              <span class="day-num-badge" x-text="`G${day.n}`"></span>
+              <span style="flex:1;font-weight:600;" x-text="day.title || '(senza titolo)'"></span>
+              <span class="text-sm muted" x-text="day.dateLabel || day.date"></span>
+              <div style="display:flex;gap:4px;margin-left:8px;" @click.stop>
+                <button class="btn btn-ghost btn-icon" @click="moveDay(di, -1)" :disabled="di === 0">↑</button>
+                <button class="btn btn-ghost btn-icon" @click="moveDay(di, 1)" :disabled="di === trip.days.length - 1">↓</button>
+                <button class="btn btn-ghost btn-icon" @click="removeDay(di)" style="color:var(--red);">✕</button>
+              </div>
+            </div>
+            <div class="day-acc-body" x-show="openDay === di">
+              <div class="field-row cols-3" style="margin-bottom:12px;">
+                <div class="field"><label>Numero giorno</label><input type="number" x-model.number="day.n" min="1"></div>
+                <div class="field"><label>Data (ISO)</label><input type="date" x-model="day.date" @change="day.dateLabel = isoToLabel(day.date)"></div>
+                <div class="field"><label>Etichetta data</label><input type="text" x-model="day.dateLabel" placeholder="29 LUG"></div>
+              </div>
+              <div class="field-row cols-2" style="margin-bottom:12px;">
+                <div class="field"><label>Titolo giorno</label><input type="text" x-model="day.title"></div>
+                <div class="field"><label>Sottotitolo</label><input type="text" x-model="day.subtitle"></div>
+              </div>
+              <div class="field-row cols-2" style="margin-bottom:12px;">
+                <div class="field"><label>Zona</label><input type="text" x-model="day.zone" placeholder="📍 Kensington / South Kensington"></div>
+                <div class="field">
+                  <label>Stile numero giorno</label>
+                  <select x-model="day.style">
+                    <option value="default">Default (blue)</option>
+                    <option value="special">Special (red) — per giorni prenotati</option>
+                    <option value="gold">Gold</option>
+                    <option value="last">Last (grigio) — ultimo giorno</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <div class="card-header" style="margin-top:14px;">
+                <h3>Eventi del giorno</h3>
+                <button class="btn btn-outline btn-sm" @click="addEvent(di)">+ Evento</button>
+              </div>
+
+              <template x-for="(ev, ei) in day.events" :key="ei">
+                <div class="event-row">
+                  <div class="event-row-header">
+                    <span class="event-type-badge" :class="`tb-${ev.type || 'visit'}`" x-text="{ visit:'Visita', booked:'Prenotato', meal:'Pasto', logistics:'Logistica' }[ev.type] || ev.type"></span>
+                    <span style="flex:1;font-size:13px;font-weight:600;" x-text="ev.name || '(senza nome)'"></span>
+                    <div style="display:flex;gap:4px;">
+                      <button class="btn btn-ghost btn-icon btn-sm" @click="moveEvent(di, ei, -1)" :disabled="ei === 0">↑</button>
+                      <button class="btn btn-ghost btn-icon btn-sm" @click="moveEvent(di, ei, 1)" :disabled="ei === day.events.length - 1">↓</button>
+                      <button class="btn btn-ghost btn-icon btn-sm" @click="day.events.splice(ei, 1)" style="color:var(--red);">✕</button>
+                    </div>
+                  </div>
+
+                  <div class="field-row cols-2" style="margin-bottom:8px;">
+                    <div class="field" style="margin:0;"><label>Orario</label><input type="text" x-model="ev.time" placeholder="10:30"></div>
+                    <div class="field" style="margin:0;"><label>Nome evento</label><input type="text" x-model="ev.name"></div>
+                  </div>
+
+                  <div class="field" style="margin-bottom:8px;">
+                    <label>Tipo evento</label>
+                    <div class="type-selector">
+                      <label class="type-opt" :class="{ sel: ev.type === 'visit' }">
+                        <input type="radio" :name="`type-${di}-${ei}`" value="visit" x-model="ev.type">
+                        <span class="dot dot-blue"></span> Visita
+                      </label>
+                      <label class="type-opt" :class="{ sel: ev.type === 'booked' }">
+                        <input type="radio" :name="`type-${di}-${ei}`" value="booked" x-model="ev.type">
+                        <span class="dot dot-red"></span> Prenotato
+                      </label>
+                      <label class="type-opt" :class="{ sel: ev.type === 'meal' }">
+                        <input type="radio" :name="`type-${di}-${ei}`" value="meal" x-model="ev.type">
+                        <span class="dot dot-gold"></span> Pasto
+                      </label>
+                      <label class="type-opt" :class="{ sel: ev.type === 'logistics' }">
+                        <input type="radio" :name="`type-${di}-${ei}`" value="logistics" x-model="ev.type">
+                        <span class="dot dot-star"></span> Logistica
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="field" x-show="ev.type === 'booked'" style="margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;">
+                      <input type="checkbox" x-model="ev.showBookingBadge" :checked="ev.showBookingBadge !== false" @change="ev.showBookingBadge = $event.target.checked">
+                      Mostra badge "✓ Prenotato"
+                    </label>
+                    <div class="field-hint">Disattiva per eventi fissi senza biglietto (es. cambio della guardia)</div>
+                  </div>
+
+                  <div class="field" style="margin-bottom:8px;"><label>Descrizione</label><textarea x-model="ev.description" rows="2"></textarea></div>
+                  <div class="field-row cols-2" style="margin-bottom:8px;">
+                    <div class="field" style="margin:0;"><label>💡 Tip (sfondo giallo)</label><input type="text" x-model="ev.tip"></div>
+                    <div class="field" style="margin:0;"><label>⚠ Alert (sfondo rosso)</label><input type="text" x-model="ev.alert"></div>
+                  </div>
+
+                  <div class="field" style="margin:0;">
+                    <label>Navigazione "Guidami" — destinazione Google Maps</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                      <input type="text" x-model="ev.placeGuide" placeholder="es. Natural History Museum, London">
+                      <button class="btn btn-outline btn-sm" @click="testGuide(ev.placeGuide)" :disabled="!ev.placeGuide" title="Apre Google Maps per verificare la destinazione">🗺️ Testa</button>
+                    </div>
+                    <div class="field-hint">Lascia vuoto per non mostrare il bottone "Guidami". Usa il tasto 🗺️ per verificare che Maps trovi il posto giusto.</div>
+                  </div>
+                </div>
+              </template>
+
+              <div class="divider"></div>
+              <h3 style="margin-bottom:10px;">Badge del giorno</h3>
+              <template x-for="(badge, bi) in (day.badges || [])" :key="bi">
+                <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+                  <input type="text" x-model="badge.text" placeholder="es. Volo MXP→LGW 10:30" style="flex:1;">
+                  <select x-model="badge.color" style="width:120px;">
+                    <option value="default">Default</option>
+                    <option value="red">Rosso</option>
+                    <option value="blue">Blu</option>
+                    <option value="gold">Oro</option>
+                  </select>
+                  <button class="btn btn-ghost btn-icon" @click="day.badges.splice(bi,1)">✕</button>
+                </div>
+              </template>
+              <button class="btn btn-ghost btn-sm" @click="if(!day.badges) day.badges=[]; day.badges.push({ text: '', color: 'default' })">+ Badge</button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- TAB: BIGLIETTI -->
+      <div x-show="tab === 'biglietti'">
+        <div class="alert alert-info">
+          I PDF vengono caricati nel repository GitHub → <span class="mono">trips/<span x-text="tripId"></span>/tickets/</span>. Formato accettato: solo file PDF.
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Biglietti</h3>
+            <button class="btn btn-outline btn-sm" @click="trip.tickets.push({ name: '', dayN: 1, dayLabel: '', pdfPath: 'tickets/', isVip: false })">+ Biglietto</button>
+          </div>
+          <template x-for="(t, ti) in trip.tickets" :key="ti">
+            <div class="event-row">
+              <div class="field-row cols-2" style="margin-bottom:8px;">
+                <div class="field" style="margin:0;"><label>Nome biglietto</label><input type="text" x-model="t.name" placeholder="Warner Bros — Harry Potter Studios"></div>
+                <div class="field" style="margin:0;"><label>Etichetta giorno</label><input type="text" x-model="t.dayLabel" placeholder="G3 · Ven 31 Lug · ore 10:30"></div>
+              </div>
+              <div class="field-row" style="grid-template-columns:80px 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;">
+                <div class="field" style="margin:0;"><label>Giorno N</label><input type="number" x-model.number="t.dayN" min="1"></div>
+                <div class="field" style="margin:0;"><label>Path PDF (relativo alla cartella del viaggio)</label><input type="text" x-model="t.pdfPath" placeholder="tickets/nome-file.pdf"></div>
+                <div class="field" style="margin:0;">
+                  <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;margin-top:20px;">
+                    <input type="checkbox" x-model="t.isVip"> Bordo VIP (prenotazione fissa)
+                  </label>
+                </div>
+                <button class="btn btn-ghost btn-icon" @click="trip.tickets.splice(ti,1)" style="margin-top:auto;color:var(--red);">✕</button>
+              </div>
+              <!-- PDF Upload -->
+              <div class="upload-zone" @dragover.prevent="$el.classList.add('drag')" @dragleave="$el.classList.remove('drag')" @drop.prevent="handlePdfDrop($event, ti)">
+                <input type="file" accept=".pdf" @change="handlePdfFile($event, ti)" :id="`pdf-${ti}`">
+                <label :for="`pdf-${ti}`" style="cursor:pointer;">
+                  <div>📎 Trascina un PDF qui o <u>clicca per scegliere</u></div>
+                  <div class="text-sm muted" style="margin-top:4px;" x-text="pdfStatus[ti] || 'Nessun file caricato'"></div>
+                </label>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- TAB: INFO LOCALE -->
+      <div x-show="tab === 'info'">
+        <!-- Supermercati -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Supermercati</h3>
+            <button class="btn btn-outline btn-sm" @click="trip.markets.push({ name:'', logoLetter:'', logoColor:'#000', address:'', tag:'', tagStyle:'muted', description:'', hours:'', osmEmbedUrl:'', mapsDirectionsUrl:'' })">+ Supermercato</button>
+          </div>
+          <template x-for="(m, mi) in trip.markets" :key="mi">
+            <div class="event-row">
+              <div class="field-row cols-3" style="margin-bottom:8px;">
+                <div class="field" style="margin:0;"><label>Nome</label><input type="text" x-model="m.name"></div>
+                <div class="field" style="margin:0;"><label>Lettera logo</label><input type="text" x-model="m.logoLetter" maxlength="1" style="font-family:serif;font-size:18px;font-weight:700;"></div>
+                <div class="field" style="margin:0;"><label>Colore logo</label><div style="display:flex;gap:6px;"><input type="color" x-model="m.logoColor" style="width:44px;"><input type="text" x-model="m.logoColor"></div></div>
+              </div>
+              <div class="field-row cols-3" style="margin-bottom:8px;">
+                <div class="field" style="margin:0;"><label>Indirizzo</label><input type="text" x-model="m.address"></div>
+                <div class="field" style="margin:0;"><label>Tag</label><input type="text" x-model="m.tag" placeholder="es. Grande"></div>
+                <div class="field" style="margin:0;"><label>Stile tag</label>
+                  <select x-model="m.tagStyle"><option value="red">Rosso</option><option value="blue">Blu</option><option value="muted">Grigio</option></select>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:8px;"><label>Descrizione</label><textarea x-model="m.description" rows="2"></textarea></div>
+              <div class="field" style="margin-bottom:8px;"><label>Orari (una riga per periodo, separati da ↵)</label><textarea x-model="m.hours" rows="3" placeholder="Lun–Ven 07:00–23:00&#10;Sabato 07:00–22:00&#10;Domenica 11:00–17:00"></textarea></div>
+              <div class="field" style="margin-bottom:8px;">
+                <label>OSM Embed URL</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="url" x-model="m.osmEmbedUrl" placeholder="https://www.openstreetmap.org/export/embed.html?…">
+                  <button class="btn btn-outline btn-sm" @click="generateOsmUrl(mi)" title="Genera URL da indirizzo usando Nominatim">Genera</button>
+                </div>
+                <div class="field-hint">Clicca "Genera" per costruire automaticamente l'URL dalla mappa usando l'indirizzo inserito sopra.</div>
+              </div>
+              <div class="field" style="margin-bottom:4px;">
+                <label>Google Maps Directions URL</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="url" x-model="m.mapsDirectionsUrl">
+                  <button class="btn btn-outline btn-sm" @click="window.open(m.mapsDirectionsUrl, '_blank')" :disabled="!m.mapsDirectionsUrl">↗</button>
+                </div>
+                <div class="field-hint">Formato: https://www.google.com/maps/dir/?api=1&destination=Sainsbury%27s…&travelmode=transit</div>
+              </div>
+              <div style="text-align:right;margin-top:8px;">
+                <button class="btn btn-ghost btn-sm" @click="trip.markets.splice(mi,1)" style="color:var(--red);">Rimuovi</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Pratiche -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Info pratiche</h3>
+            <button class="btn btn-outline btn-sm" @click="trip.practicalInfo.items.push({ label:'', value:'', sub:'' })">+ Card</button>
+          </div>
+          <template x-for="(item, ii) in trip.practicalInfo.items" :key="ii">
+            <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+              <div class="field-row cols-3" style="flex:1;margin:0;">
+                <div class="field" style="margin:0;"><label x-show="ii===0">Etichetta</label><input type="text" x-model="item.label" placeholder="es. Trasporti"></div>
+                <div class="field" style="margin:0;"><label x-show="ii===0">Valore</label><input type="text" x-model="item.value" placeholder="es. Oyster Card"></div>
+                <div class="field" style="margin:0;"><label x-show="ii===0">Descrizione</label><input type="text" x-model="item.sub"></div>
+              </div>
+              <button class="btn btn-ghost btn-icon" @click="trip.practicalInfo.items.splice(ii,1)" :style="ii===0 ? 'margin-top:22px;' : ''">✕</button>
+            </div>
+          </template>
+        </div>
+
+        <!-- Da Prenotare -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Da prenotare</h3>
+            <button class="btn btn-outline btn-sm" @click="trip.bookingChecklist.push({ name:'', done: false, url:'', note:'' })">+ Voce</button>
+          </div>
+          <template x-for="(ck, cki) in trip.bookingChecklist" :key="cki">
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
+              <input type="checkbox" x-model="ck.done" style="margin-top:10px;flex-shrink:0;">
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <input type="text" x-model="ck.name" placeholder="Nome prenotazione">
+                <div style="display:flex;gap:6px;">
+                  <input type="url" x-model="ck.url" placeholder="URL sito (opzionale)" style="flex:1;">
+                  <input type="text" x-model="ck.note" placeholder="Nota" style="flex:1;">
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-icon" @click="trip.bookingChecklist.splice(cki,1)" style="margin-top:4px;">✕</button>
+            </div>
+          </template>
+        </div>
+
+        <!-- Oyster Card -->
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Oyster Card / trasporti locali</h3>
+          <div class="field">
+            <label>Paragrafi descrittivi (uno per riga → paragrafo separato)</label>
+            <textarea rows="4" :value="(trip.oyster.body||[]).join('\n\n')"
+              @change="trip.oyster.body = $event.target.value.split(/\n\n+/).filter(s=>s.trim())"></textarea>
+          </div>
+          <div class="field">
+            <label>Punti elenco (uno per riga)</label>
+            <textarea rows="4" :value="(trip.oyster.points||[]).join('\n')"
+              @change="trip.oyster.points = $event.target.value.split('\n').filter(s=>s.trim())"></textarea>
+          </div>
+          <div class="field"><label>Tip (sfondo giallo)</label><textarea x-model="trip.oyster.tip" rows="2"></textarea></div>
+        </div>
+      </div>
+
+      <!-- TAB: MAPPE -->
+      <div x-show="tab === 'mappe'">
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Google My Maps</h3>
+          <div class="field">
+            <label>URL condivisione Google My Maps</label>
+            <div style="display:flex;gap:8px;">
+              <input type="url" id="gmapsUrlInput" placeholder="https://www.google.com/maps/d/viewer?mid=…">
+              <button class="btn btn-outline btn-sm" @click="extractMapsId()">Estrai ID</button>
+            </div>
+            <div class="field-hint">Incolla l'URL di condivisione → "Estrai ID" ricava automaticamente l'ID da inserire sotto.</div>
+          </div>
+          <div class="field">
+            <label>Google My Maps ID</label>
+            <input type="text" x-model="trip.map.googleMyMapsId" placeholder="es. 1AsySBlkKg_Z30b2gMPOh0E0Cr8s9pzk" style="font-family:monospace;">
+          </div>
+          <button class="btn btn-outline btn-sm" @click="window.open('https://www.google.com/maps/d/embed?mid=' + trip.map.googleMyMapsId, '_blank')" :disabled="!trip.map.googleMyMapsId">Anteprima mappa ↗</button>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Mappa metro</h3>
+          <div class="field">
+            <label>URL immagine mappa metro</label>
+            <input type="url" x-model="trip.map.metroMapUrl" placeholder="https://upload.wikimedia.org/…">
+            <div class="field-hint">URL diretto a un'immagine SVG/PNG della mappa metro della città.</div>
+          </div>
+          <button class="btn btn-outline btn-sm" @click="window.open(trip.map.metroMapUrl, '_blank')" :disabled="!trip.map.metroMapUrl" style="margin-top:6px;">Apri mappa ↗</button>
+        </div>
+      </div>
+
+    </div><!-- end x-if trip -->
+  </template>
+</div>
+
+<script>
+function admin() {
+  return {
+    // State
+    screen: 'auth',
+    patInput: '',
+    repoInput: '',
+    pat: '',
+    repo: '',
+    authError: '',
+    loading: false,
+    saving: false,
+    saveStatus: '',
+    error: '',
+    trips: [],
+    activeId: '',
+    trip: null,
+    tripId: '',
+    tab: 'meta',
+    openDay: null,
+    pdfStatus: {},
+
+    // Init
+    init() {
+      const saved = localStorage.getItem('travelapp_auth');
+      if (saved) {
+        const { pat, repo } = JSON.parse(saved);
+        this.pat = pat; this.repo = repo;
+        this.patInput = pat; this.repoInput = repo;
+        this.loadHome();
+      }
+    },
+
+    // Auth
+    async login() {
+      this.authError = '';
+      if (!this.patInput || !this.repoInput) { this.authError = 'Inserisci PAT e repository.'; return; }
+      this.loading = true;
+      try {
+        const r = await this.ghFetch('contents/trips/index.json');
+        this.pat = this.patInput; this.repo = this.repoInput;
+        localStorage.setItem('travelapp_auth', JSON.stringify({ pat: this.pat, repo: this.repo }));
+        const content = JSON.parse(atob(r.content.replace(/\s/g, '')));
+        this.trips = content.trips || [];
+        this.loading = false;
+        await this.loadActiveId();
+        this.screen = 'home';
+      } catch(e) {
+        this.authError = 'Accesso fallito. Verifica PAT e nome repository.';
+        this.loading = false;
+      }
+    },
+
+    logout() {
+      localStorage.removeItem('travelapp_auth');
+      this.pat = ''; this.repo = ''; this.patInput = ''; this.repoInput = '';
+      this.screen = 'auth';
+    },
+
+    // GitHub API
+    async ghFetch(path, method = 'GET', body = null) {
+      const url = `https://api.github.com/repos/${this.repo}/${path}`;
+      const opts = { method, headers: { Authorization: `Bearer ${this.pat}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const r = await fetch(url, opts);
+      if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+      if (method === 'DELETE') return null;
+      return r.json();
+    },
+
+    async readFile(path) {
+      const r = await this.ghFetch(`contents/${path}`);
+      const text = decodeURIComponent(escape(atob(r.content.replace(/\s/g, ''))));
+      return { text, sha: r.sha };
+    },
+
+    async writeFile(path, content, message) {
+      let sha;
+      try { const r = await this.ghFetch(`contents/${path}`); sha = r.sha; } catch(e) {}
+      const encoded = btoa(unescape(encodeURIComponent(content)));
+      await this.ghFetch(`contents/${path}`, 'PUT', { message, content: encoded, ...(sha ? { sha } : {}) });
+    },
+
+    async writeFileBinary(path, base64, message) {
+      let sha;
+      try { const r = await this.ghFetch(`contents/${path}`); sha = r.sha; } catch(e) {}
+      await this.ghFetch(`contents/${path}`, 'PUT', { message, content: base64, ...(sha ? { sha } : {}) });
+    },
+
+    // Home screen
+    async loadHome() {
+      this.loading = true; this.error = '';
+      try {
+        const r = await this.ghFetch('contents/trips/index.json');
+        const content = JSON.parse(atob(r.content.replace(/\s/g, '')));
+        this.trips = content.trips || [];
+        await this.loadActiveId();
+        this.screen = 'home';
+      } catch(e) { this.error = 'Errore caricamento viaggi: ' + e.message; }
+      this.loading = false;
+    },
+
+    async loadActiveId() {
+      try {
+        const r = await this.ghFetch('contents/trips/_active.json');
+        const a = JSON.parse(atob(r.content.replace(/\s/g, '')));
+        this.activeId = a.id || '';
+      } catch(e) { this.activeId = ''; }
+    },
+
+    goHome() { this.screen = 'home'; this.trip = null; this.tripId = ''; this.openDay = null; },
+
+    // Set active trip
+    async setActive(id) {
+      try {
+        await this.writeFile('trips/_active.json', JSON.stringify({ id }, null, 2), `Set active trip: ${id}`);
+        this.activeId = id;
+        this.saveStatus = 'saved';
+      } catch(e) { this.error = 'Errore: ' + e.message; }
+    },
+
+    // Edit trip
+    async editTrip(id) {
+      this.loading = true; this.error = '';
+      try {
+        const { text } = await this.readFile(`trips/${id}/trip.json`);
+        this.trip = JSON.parse(text);
+        this.tripId = id;
+        this.tab = 'meta';
+        this.openDay = null;
+        this.pdfStatus = {};
+        this.screen = 'editor';
+      } catch(e) { this.error = 'Errore caricamento: ' + e.message; }
+      this.loading = false;
+    },
+
+    // New trip
+    newTrip() {
+      this.tripId = 'nuovo-viaggio-' + Date.now();
+      this.trip = this.emptyTrip();
+      this.tab = 'meta';
+      this.openDay = null;
+      this.pdfStatus = {};
+      this.screen = 'editor';
+    },
+
+    emptyTrip() {
+      return {
+        meta: { id: this.tripId, name: 'Nuovo Viaggio', subtitle: 'Il Nostro Viaggio', destination: '', country: '', flag: '✈', startDate: '', endDate: '', travelers: { adults: 2, children: [] }, theme: { primary: '#012169', accent: '#C8102E', gold: '#C5A028' }, currency: { local: { code: 'EUR', flag: '🇪🇺', label: 'Euro' }, home: { code: 'EUR', flag: '🇪🇺', label: 'Euro' }, fallbackRate: 1, quickAmounts: [5, 10, 20, 50] }, language: 'it' },
+        hotel: { name: '', address: '', zone: '', landmarks: [] },
+        flights: { outbound: this.emptyFlight(), return: this.emptyFlight() },
+        map: { googleMyMapsId: '', metroMapUrl: '' },
+        practicalInfo: { items: [] },
+        markets: [],
+        oyster: { body: [], points: [], tip: '' },
+        bookingChecklist: [],
+        days: [],
+        tickets: [],
+      };
+    },
+
+    emptyFlight() {
+      return { flightNumber: '', airline: '', date: '', from: { iata: '', terminal: '', time: '' }, to: { iata: '', terminal: '', time: '' }, duration: '', trackingUrl: '', checklist: [], checklistTitle: '', note: '' };
+    },
+
+    // Save trip
+    async saveTrip() {
+      this.saving = true; this.saveStatus = 'saving'; this.error = '';
+      try {
+        this.trip.meta.id = this.tripId;
+        const content = JSON.stringify(this.trip, null, 2);
+        await this.writeFile(`trips/${this.tripId}/trip.json`, content, `Aggiornamento viaggio: ${this.trip.meta.name}`);
+        // Update index.json
+        await this.updateTripIndex();
+        this.saveStatus = 'saved';
+        setTimeout(() => { this.saveStatus = ''; }, 3000);
+      } catch(e) { this.error = 'Errore salvataggio: ' + e.message; this.saveStatus = 'error'; }
+      this.saving = false;
+    },
+
+    async updateTripIndex() {
+      let index = { trips: [] };
+      try { const { text } = await this.readFile('trips/index.json'); index = JSON.parse(text); } catch(e) {}
+      const exists = index.trips.findIndex(t => t.id === this.tripId);
+      const entry = {
+        id: this.tripId, name: this.trip.meta.name, subtitle: this.trip.meta.subtitle,
+        destination: this.trip.meta.destination, flag: this.trip.meta.flag,
+        dates: this.trip.meta.startDate && this.trip.meta.endDate
+          ? this.trip.meta.startDate + ' – ' + this.trip.meta.endDate : '',
+        startDate: this.trip.meta.startDate, endDate: this.trip.meta.endDate,
+      };
+      if (exists >= 0) index.trips[exists] = entry;
+      else index.trips.push(entry);
+      await this.writeFile('trips/index.json', JSON.stringify(index, null, 2), `Aggiornamento index viaggi`);
+    },
+
+    // Delete trip
+    async deleteTrip(id) {
+      if (!confirm(`Eliminare il viaggio "${id}"? Questa azione è irreversibile.`)) return;
+      try {
+        let index = { trips: [] };
+        try { const { text } = await this.readFile('trips/index.json'); index = JSON.parse(text); } catch(e) {}
+        index.trips = index.trips.filter(t => t.id !== id);
+        await this.writeFile('trips/index.json', JSON.stringify(index, null, 2), `Eliminazione viaggio: ${id}`);
+        this.trips = index.trips;
+        if (this.activeId === id) { await this.writeFile('trips/_active.json', JSON.stringify({ id: '' }), 'Reset active trip'); this.activeId = ''; }
+      } catch(e) { this.error = 'Errore eliminazione: ' + e.message; }
+    },
+
+    // Days
+    toggleDay(i) { this.openDay = this.openDay === i ? null : i; },
+
+    addDay() {
+      const n = this.trip.days.length + 1;
+      this.trip.days.push({ n, date: '', dateLabel: '', title: `Giorno ${n}`, subtitle: '', style: 'default', zone: '', transportSummary: [], badges: [], events: [] });
+      this.openDay = this.trip.days.length - 1;
+    },
+
+    removeDay(i) {
+      if (!confirm('Eliminare questo giorno e tutti i suoi eventi?')) return;
+      this.trip.days.splice(i, 1);
+      if (this.openDay === i) this.openDay = null;
+    },
+
+    moveDay(i, dir) {
+      const j = i + dir;
+      if (j < 0 || j >= this.trip.days.length) return;
+      [this.trip.days[i], this.trip.days[j]] = [this.trip.days[j], this.trip.days[i]];
+      this.openDay = j;
+    },
+
+    addEvent(di) {
+      this.trip.days[di].events.push({ time: '', name: '', type: 'visit', description: '', tip: '', alert: '', placeGuide: '' });
+    },
+
+    moveEvent(di, ei, dir) {
+      const events = this.trip.days[di].events;
+      const j = ei + dir;
+      if (j < 0 || j >= events.length) return;
+      [events[ei], events[j]] = [events[j], events[ei]];
+    },
+
+    // Helpers
+    isoToLabel(isoDate) {
+      if (!isoDate) return '';
+      const IT_MONTHS = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+      const [, m, d] = isoDate.split('-').map(Number);
+      return d + ' ' + IT_MONTHS[m - 1];
+    },
+
+    testGuide(dest) {
+      if (!dest) return;
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=transit`, '_blank');
+    },
+
+    extractMapsId() {
+      const url = document.getElementById('gmapsUrlInput').value.trim();
+      const match = url.match(/[?&]mid=([^&]+)/);
+      if (match) { this.trip.map.googleMyMapsId = match[1]; }
+      else { alert('ID non trovato. Assicurati di incollare l\'URL completo di Google My Maps.'); }
+    },
+
+    async generateOsmUrl(mi) {
+      const m = this.trip.markets[mi];
+      if (!m.address) { alert('Inserisci prima un indirizzo.'); return; }
+      try {
+        const q = encodeURIComponent(m.address);
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+        const data = await r.json();
+        if (!data.length) { alert('Indirizzo non trovato da Nominatim. Prova con un indirizzo più preciso.'); return; }
+        const { lat, lon } = data[0];
+        const lf = parseFloat(lat), lo = parseFloat(lon);
+        const delta = 0.01;
+        m.osmEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lo-delta}%2C${lf-delta}%2C${lo+delta}%2C${lf+delta}&layer=mapnik&marker=${lf}%2C${lo}`;
+        if (!m.mapsDirectionsUrl) {
+          m.mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}&travelmode=transit`;
+        }
+      } catch(e) { alert('Errore generazione mappa: ' + e.message); }
+    },
+
+    // PDF upload
+    async handlePdfDrop(event, ti) {
+      event.currentTarget.classList.remove('drag');
+      const file = event.dataTransfer.files[0];
+      if (file) await this.uploadPdf(file, ti);
+    },
+
+    async handlePdfFile(event, ti) {
+      const file = event.target.files[0];
+      if (file) await this.uploadPdf(file, ti);
+    },
+
+    async uploadPdf(file, ti) {
+      if (!file.name.endsWith('.pdf')) { alert('Solo file PDF.'); return; }
+      this.pdfStatus = { ...this.pdfStatus, [ti]: `Caricamento ${file.name}…` };
+      try {
+        const base64 = await fileToBase64(file);
+        const pdfPath = `trips/${this.tripId}/tickets/${file.name}`;
+        await this.writeFileBinary(pdfPath, base64, `Upload PDF: ${file.name}`);
+        this.trip.tickets[ti].pdfPath = `tickets/${file.name}`;
+        this.pdfStatus = { ...this.pdfStatus, [ti]: `✓ ${file.name} caricato` };
+      } catch(e) { this.pdfStatus = { ...this.pdfStatus, [ti]: `⚠ Errore: ${e.message}` }; }
+    },
+  };
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>

@@ -131,7 +131,6 @@
   <h1>TravelApp Admin</h1>
   <template x-if="screen !== 'auth'">
     <div style="display:flex;gap:8px;align-items:center;">
-      <span class="topbar-sub" x-text="repo"></span>
       <button class="btn btn-outline btn-sm" @click="goHome()" x-show="screen === 'editor'">← Viaggi</button>
       <button class="btn btn-outline btn-sm" @click="logout()">Esci</button>
     </div>
@@ -142,17 +141,11 @@
 <div class="container" x-show="screen === 'auth'">
   <div style="max-width:440px;margin:40px auto;">
     <h2 style="margin-bottom:6px;">Accesso Admin</h2>
-    <p class="muted text-sm" style="margin-bottom:24px;">Inserisci il tuo GitHub Personal Access Token per gestire i viaggi.</p>
+    <p class="muted text-sm" style="margin-bottom:24px;">Inserisci la password per accedere alla gestione viaggi.</p>
     <div class="card">
       <div class="field">
-        <label>Repository GitHub</label>
-        <input type="text" x-model="repoInput" placeholder="es. frabarz17/TravelApp">
-        <div class="field-hint">Formato: nome-utente/nome-repo</div>
-      </div>
-      <div class="field">
-        <label>Personal Access Token (PAT)</label>
-        <input type="password" x-model="patInput" placeholder="ghp_…" @keydown.enter="login()">
-        <div class="field-hint">Scope richiesto: <span class="mono">repo</span> (Contents read+write). <a href="https://github.com/settings/tokens/new" target="_blank">Crea token ↗</a></div>
+        <label>Password</label>
+        <input type="password" x-model="passwordInput" placeholder="••••••••" @keydown.enter="login()" autofocus>
       </div>
       <div class="alert alert-error" x-show="authError" x-text="authError"></div>
       <button class="btn btn-primary" @click="login()" :disabled="loading">
@@ -704,10 +697,8 @@ function admin() {
   return {
     // State
     screen: 'auth',
-    patInput: '',
-    repoInput: '',
-    pat: '',
-    repo: '',
+    passwordInput: '',
+    password: '',
     authError: '',
     loading: false,
     saving: false,
@@ -725,46 +716,47 @@ function admin() {
     init() {
       const saved = localStorage.getItem('travelapp_auth');
       if (saved) {
-        const { pat, repo } = JSON.parse(saved);
-        this.pat = pat; this.repo = repo;
-        this.patInput = pat; this.repoInput = repo;
-        this.loadHome();
+        try {
+          const { password } = JSON.parse(saved);
+          if (password) { this.password = password; this.loadHome(); }
+        } catch(e) {}
       }
     },
 
     // Auth
     async login() {
       this.authError = '';
-      if (!this.patInput || !this.repoInput) { this.authError = 'Inserisci PAT e repository.'; return; }
+      if (!this.passwordInput) { this.authError = 'Inserisci la password.'; return; }
       this.loading = true;
+      this.password = this.passwordInput;
       try {
         const r = await this.ghFetch('contents/trips/index.json');
-        this.pat = this.patInput; this.repo = this.repoInput;
-        localStorage.setItem('travelapp_auth', JSON.stringify({ pat: this.pat, repo: this.repo }));
+        localStorage.setItem('travelapp_auth', JSON.stringify({ password: this.password }));
         const content = JSON.parse(atob(r.content.replace(/\s/g, '')));
         this.trips = content.trips || [];
         this.loading = false;
         await this.loadActiveId();
         this.screen = 'home';
       } catch(e) {
-        this.authError = 'Accesso fallito. Verifica PAT e nome repository.';
+        this.authError = e.message.includes('401') ? 'Password errata.' : 'Accesso fallito: ' + e.message;
+        this.password = '';
         this.loading = false;
       }
     },
 
     logout() {
       localStorage.removeItem('travelapp_auth');
-      this.pat = ''; this.repo = ''; this.patInput = ''; this.repoInput = '';
+      this.password = ''; this.passwordInput = '';
       this.screen = 'auth';
     },
 
-    // GitHub API
+    // GitHub API (via serverless proxy)
     async ghFetch(path, method = 'GET', body = null) {
-      const url = `https://api.github.com/repos/${this.repo}/${path}`;
-      const opts = { method, headers: { Authorization: `Bearer ${this.pat}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' } };
+      const url = `/api/github?path=${encodeURIComponent(path)}`;
+      const opts = { method, headers: { 'x-admin-password': this.password, 'Content-Type': 'application/json' } };
       if (body) opts.body = JSON.stringify(body);
       const r = await fetch(url, opts);
-      if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+      if (!r.ok) throw new Error(`API ${r.status}: ${await r.text()}`);
       if (method === 'DELETE') return null;
       return r.json();
     },

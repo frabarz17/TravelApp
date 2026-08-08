@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Travel App</title>
+<meta id="metaThemeColor" name="theme-color" content="#012169">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta id="metaAppleTitle" name="apple-mobile-web-app-title" content="Travel">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-180x180.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #C8102E;
+    --blue: #012169;
+    --gold: #C5A028;
+    --cream: #FAF7F2;
+    --ink: #1A1A1A;
+    --muted: #6B6B6B;
+    --light: #F0EDE8;
+    --white: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  /* INFO CARDS */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 30px 0 50px;
+  }
+
+  .info-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent, var(--blue));
+    border-radius: 4px 0 0 4px;
+  }
+
+  .info-card .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .info-card .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue);
+  }
+
+  .info-card .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* DAY CARDS */
+  .days-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .day-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+    animation: slideUp 0.4s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .day-header {
+    display: flex;
+    align-items: stretch;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .day-number {
+    background: var(--blue);
+    color: white;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 20px 10px;
+  }
+
+  .day-number .n {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .day-number .d {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+
+  .day-number.special { background: var(--red); }
+  .day-number.gold { background: var(--gold); }
+  .day-number.last { background: #444; }
+
+  .day-title-block {
+    flex: 1;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .day-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .day-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .day-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.15);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .badge.red { background: #FEE; border-color: var(--red); color: var(--red); }
+  .badge.blue { background: #EEF2FF; border-color: var(--blue); color: var(--blue); }
+  .badge.gold { background: #FFF8E7; border-color: var(--gold); color: #8B6914; }
+
+  /* DAY BODY */
+  .day-body {
+    display: none;
+    padding: 0 20px 24px 90px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+
+  /* TIMELINE */
+  .timeline {
+    list-style: none;
+    position: relative;
+    padding-top: 20px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 24px; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--blue), transparent);
+  }
+
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+
+  .tl-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--blue);
+    flex-shrink: 0;
+    margin-top: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tl-dot.red { background: var(--red); }
+  .tl-dot.gold { background: var(--gold); }
+  .tl-dot.star { background: white; border: 2px solid var(--blue); }
+
+  .tl-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 48px;
+    padding-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .tl-content {}
+
+  .tl-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .tl-detail {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.5;
+  }
+
+  .tl-tip {
+    font-size: 11px;
+    color: #8B6914;
+    background: #FFF8E7;
+    border-left: 2px solid var(--gold);
+    padding: 4px 8px;
+    margin-top: 6px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .tl-alert {
+    font-size: 11px;
+    color: #b91c1c;
+    background: #FFF0F0;
+    border-left: 2px solid var(--red);
+    padding: 4px 8px;
+    margin-top: 6px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ZONE TAG */
+  .zone-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    background: var(--light);
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    margin-top: 14px;
+  }
+
+  /* TIPS BOX */
+  .tips-box {
+    background: white;
+    border: 1px solid rgba(1,33,105,0.15);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .tips-box h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+
+  .tips-box ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tips-box ul li {
+    font-size: 12px;
+    color: #2D3A6B;
+    display: flex;
+    gap: 8px;
+  }
+
+  .tips-box ul li::before {
+    content: '→';
+    color: var(--blue);
+    flex-shrink: 0;
+  }
+
+  /* ===== APP SHELL ===== */
+  body {
+    padding-top: calc(100px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* App header (fixed) */
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    background: var(--blue);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .app-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 20px 10px;
+  }
+
+  .app-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    letter-spacing: -0.3px;
+  }
+
+  .app-title span { color: var(--gold); font-style: italic; }
+
+  /* Day tabs */
+  .day-tabs {
+    display: flex;
+    gap: 5px;
+    padding: 0 14px 11px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+
+  .day-tab {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 46px;
+    padding: 7px 10px 6px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .day-tab.active { background: var(--gold); border-color: var(--gold); }
+
+  .day-tab-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    line-height: 1;
+  }
+  .day-tab.active .day-tab-num { color: var(--blue); }
+
+  .day-tab-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1;
+    margin-top: 3px;
+  }
+  .day-tab.active .day-tab-date { color: rgba(1,33,105,0.7); font-weight: 500; }
+
+  /* Day cards: only active one visible, body always open */
+  .day-card {
+    display: none;
+    cursor: default;
+  }
+  .day-card.active { display: block; }
+  .day-card.active .day-body { display: block; }
+  .day-card .chevron { display: none; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    background: white;
+    border-top: 1px solid var(--light);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 9px 0 7px;
+    gap: 3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .nav-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .nav-item.active .nav-icon { color: var(--blue); }
+  .nav-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .nav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .nav-item.active .nav-label { color: var(--blue); }
+
+  /* Mappa/Metro: fixed, fill entire area below header, behind nav */
+  #mappa-section, #metro-section {
+    position: fixed;
+    top: calc(46px + env(safe-area-inset-top, 0px));
+    bottom: 0;
+    left: 0; right: 0;
+    z-index: 100;
+  }
+
+  .map-frame-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .map-frame-wrapper iframe { width: 100%; height: 100%; display: block; }
+
+  .tube-map-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    background: white;
+    touch-action: pan-x pan-y;
+  }
+  .tube-map-img {
+    width: 1400px;
+    max-width: none;
+    display: block;
+  }
+
+  .tl-booking-badge { display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; background: var(--red); color: white; padding: 3px 10px; border-radius: 3px; margin-bottom: 6px; font-weight: 500; }
+
+  .tl-guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1.5px solid var(--blue);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--blue);
+    text-decoration: none;
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tl-guide svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Flight cards */
+  .flight-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-left: 4px solid var(--blue); border-radius: 8px; padding: 20px; margin-bottom: 10px; }
+  .flight-card.ret { border-left-color: var(--red); }
+  .flight-iata { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; line-height: 1; color: var(--blue); }
+  .flight-card.ret .flight-iata { color: var(--red); }
+  .flight-terminal { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-top: 2px; }
+  .flight-hhmm { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--ink); margin-top: 4px; }
+  .flight-btn { display: block; text-align: center; padding: 9px 6px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+  .flight-btn.solid { background: var(--blue); color: white; }
+  .flight-card.ret .flight-btn.solid { background: var(--red); }
+  .flight-btn.outline { border: 1.5px solid var(--blue); color: var(--blue); }
+  .flight-card.ret .flight-btn.outline { border-color: var(--red); color: var(--red); }
+  .ck-row { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; margin-bottom: 9px; line-height: 1.45; color: var(--ink); }
+  .ck-row:last-child { margin-bottom: 0; }
+  .ck-badge { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; white-space: nowrap; padding: 2px 7px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; }
+  .ck-blue { background: var(--blue); color: white; }
+  .ck-gold { background: var(--gold); color: var(--blue); }
+  .ck-red { background: var(--red); color: white; }
+  .ck-muted { background: var(--muted); color: white; }
+
+  /* Info pill sub-nav */
+  .info-pill-nav { display: flex; gap: 8px; padding: 14px 0 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .info-pill-nav::-webkit-scrollbar { display: none; }
+  .info-pill { flex-shrink: 0; padding: 7px 16px; border-radius: 20px; border: 1.5px solid rgba(0,0,0,0.12); background: var(--light); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3px; color: var(--muted); cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+  .info-pill.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  /* Currency converter */
+  .fx-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 8px; margin-top: 8px; }
+  .fx-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 8px; background: var(--light); }
+  .fx-flag { font-size: 26px; flex: 0 0 auto; line-height: 1; }
+  .fx-field { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .fx-field label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .fx-input { width: 100%; border: none; background: transparent; font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--ink); padding: 0; -webkit-appearance: none; outline: none; }
+  .fx-input::placeholder { color: rgba(0,0,0,0.18); }
+  .fx-cur { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--muted); flex: 0 0 auto; }
+  .fx-actions { display: flex; gap: 8px; margin: 6px 0; }
+  .fx-swap { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .fx-swap span { width: 100%; text-align: center; }
+  .fx-swap span { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--blue); background: var(--light); border: 1px solid rgba(1,33,105,0.15); border-radius: 20px; padding: 4px 14px; }
+  .fx-swap:active span { background: var(--blue); color: white; }
+
+  /* Fix nav iOS PWA: il tab Cambio ha poco contenuto, riempi la viewport */
+  #info-sub-cambio { min-height: calc(100vh - 120px); }
+  .fx-rate { text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 14px; letter-spacing: 0.3px; }
+  .fx-rate b { color: var(--ink); font-weight: 500; }
+  .fx-chips { display: flex; gap: 8px; margin-top: 16px; }
+  .fx-chip { flex: 1; padding: 9px 0; border-radius: 8px; border: 1.5px solid rgba(0,0,0,0.12); background: white; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; text-align: center; }
+
+  /* Ticket cards */
+  .ticket-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ticket-card.vip { border-left: 3px solid var(--red); }
+  .ticket-info { flex: 1; min-width: 0; }
+  .ticket-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+  .ticket-day { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.3px; }
+  .ticket-open { flex-shrink: 0; display: block; padding: 8px 14px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3px; text-decoration: none; background: var(--blue); color: white; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+  .ticket-card.vip .ticket-open { background: var(--red); }
+
+  /* Market section */
+  .market-card { background: white; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+  .market-header { display: flex; align-items: center; gap: 12px; padding: 16px 16px 0; }
+  .market-logo { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: white; flex-shrink: 0; }
+  .market-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--ink); }
+  .market-address { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.5px; margin-top: 2px; }
+  .market-tag { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; white-space: nowrap; margin-left: auto; flex-shrink: 0; }
+  .market-desc { font-size: 13px; color: var(--ink); line-height: 1.6; padding: 12px 16px 8px; }
+  .market-hours { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); padding: 0 16px 14px; line-height: 1.8; }
+  .market-map-link { display: block; position: relative; height: 165px; overflow: hidden; text-decoration: none; border-top: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
+  .market-map-frame { width: 100%; height: 165px; border: none; pointer-events: none; display: block; }
+  .market-map-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px 14px 10px; background: linear-gradient(transparent, rgba(1,33,105,0.82)); color: white; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; text-align: right; }
+
+  /* SEARCH */
+  .search-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: white;
+    padding: 6px;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .search-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  #search-section { padding: 4px 0 80px; }
+  .search-input-row {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    gap: 10px;
+    margin: 10px 14px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+  .search-input-row svg { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  #searchInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    background: transparent;
+    color: var(--ink);
+  }
+  #searchInput::placeholder { color: var(--muted); }
+  .search-close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+    font-weight: 300;
+  }
+  .search-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 32px 24px 0;
+    line-height: 1.6;
+  }
+  .search-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 32px 24px 0;
+  }
+  #searchResults { padding: 12px 14px 0; }
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.07);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .search-result-item:active { background: var(--light); }
+  .search-result-day {
+    background: var(--blue);
+    color: white;
+    border-radius: 4px;
+    padding: 4px 8px;
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 46px;
+  }
+  .search-result-day-n { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; line-height: 1; }
+  .search-result-day-d { font-family: 'DM Mono', monospace; font-size: 9px; opacity: 0.65; margin-top: 2px; line-height: 1; }
+  .search-result-name { font-size: 14px; color: var(--ink); flex: 1; line-height: 1.3; }
+  .search-result-arrow { flex-shrink: 0; fill: none; stroke: #ccc; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Loading state */
+  .loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    color: var(--muted);
+    text-align: center;
+    gap: 12px;
+  }
+  .loading-screen h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+  }
+  .loading-screen p { font-size: 13px; max-width: 260px; }
+
+  /* Main content padding */
+  main { padding: 20px 16px; max-width: 900px; margin: 0 auto; }
+
+  @media (min-width: 600px) {
+    main { padding: 30px 24px; }
+    .day-body { padding-left: 90px; }
+  }
+  @media (max-width: 600px) {
+    .day-body { padding-left: 16px; }
+    .timeline::before { display: none; }
+    .day-number { width: 56px; }
+    .day-number .n { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-bar" style="position:relative;">
+    <div class="app-title" id="appTitleEl">Travel</div>
+    <button class="search-btn" id="searchBtn" aria-label="Cerca attrazioni">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+  <div class="day-tabs" id="dayTabs"></div>
+</div>
+
+<main>
+  <div id="itinerario-section">
+    <div class="days-wrapper" id="daysWrapper">
+      <div class="loading-screen">
+        <div style="font-size:48px;">✈</div>
+        <h3>Caricamento viaggio…</h3>
+        <p>Un momento.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="mappa-section" style="display:none;">
+    <div class="map-frame-wrapper" id="mapFrameWrapper"></div>
+  </div>
+
+  <div id="metro-section" style="display:none;">
+    <div class="tube-map-wrapper" id="tubeMapWrapper"></div>
+  </div>
+
+  <div id="info-section" style="display:none;">
+    <div class="info-pill-nav" id="infoPillNav"></div>
+    <div id="info-sub-cambio"></div>
+    <div id="info-sub-voli" style="display:none;"></div>
+    <div id="info-sub-supermercati" style="display:none;"></div>
+    <div id="info-sub-pratiche" style="display:none;"></div>
+    <div id="info-sub-altro" style="display:none;"></div>
+  </div>
+
+  <div id="biglietti-section" style="display:none;">
+    <div id="bigliettiWrapper"></div>
+  </div>
+
+  <div id="search-section" style="display:none;">
+    <div class="search-input-row">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="search" placeholder="Cerca attrazioni, luoghi…" autocomplete="off">
+      <button class="search-close-btn" id="searchClose">✕</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <div class="nav-item active" data-section="itinerario">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="nav-label">Giorni</div>
+  </div>
+  <div class="nav-item" data-section="mappa">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
+    <div class="nav-label">Mappa</div>
+  </div>
+  <div class="nav-item" data-section="metro">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M7 12h10M12 7v10"/></svg></div>
+    <div class="nav-label">Metro</div>
+  </div>
+  <div class="nav-item" data-section="info">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div class="nav-label">Info</div>
+  </div>
+  <div class="nav-item" data-section="biglietti">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="9" y1="2" x2="9" y2="22"/></svg></div>
+    <div class="nav-label">Biglietti</div>
+  </div>
+</nav>
+
+<script>
+const IT_MONTHS = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+
+function formatShortDate(isoDate) {
+  const parts = isoDate.split('-').map(Number);
+  return parts[2] + ' ' + IT_MONTHS[parts[1] - 1];
+}
+
+function applyTheme(theme) {
+  const s = document.documentElement.style;
+  s.setProperty('--blue', theme.primary);
+  s.setProperty('--red', theme.accent);
+  s.setProperty('--gold', theme.gold);
+}
+
+function renderHeader(meta) {
+  document.title = meta.name + ' — ' + (meta.subtitle || '');
+  document.getElementById('metaThemeColor').content = meta.theme.primary;
+  document.getElementById('metaAppleTitle').content = meta.name;
+  const titleEl = document.getElementById('appTitleEl');
+  const parts = meta.name.split(' ');
+  const last = parts.pop();
+  titleEl.innerHTML = parts.join(' ') + ' <span>' + last + '</span>';
+}
+
+function renderDayTabs(days) {
+  const tabsEl = document.getElementById('dayTabs');
+  tabsEl.innerHTML = '';
+  days.forEach((d, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'day-tab';
+    const label = d.dateLabel || formatShortDate(d.date);
+    tab.innerHTML = `<span class="day-tab-num">${d.n}</span><span class="day-tab-date">${label}</span>`;
+    tab.addEventListener('click', () => selectDay(i));
+    tabsEl.appendChild(tab);
+  });
+}
+
+let _daycards = [];
+
+function selectDay(idx) {
+  _daycards.forEach((c, i) => c.classList.toggle('active', i === idx));
+  document.querySelectorAll('.day-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  const activeTab = document.querySelector('.day-tab.active');
+  if (activeTab) activeTab.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectTodayOrFirst(trip) {
+  const [y, m, d] = trip.meta.startDate.split('-').map(Number);
+  const tripStart = new Date(y, m - 1, d);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((today - tripStart) / 86400000);
+  selectDay(diff >= 0 && diff < trip.days.length ? diff : 0);
+}
+
+function dotClass(type) {
+  if (type === 'booked')    return 'tl-dot red';
+  if (type === 'meal')      return 'tl-dot gold';
+  if (type === 'logistics') return 'tl-dot star';
+  return 'tl-dot';
+}
+
+function badgeClass(color) {
+  if (color === 'red')  return 'badge red';
+  if (color === 'blue') return 'badge blue';
+  if (color === 'gold') return 'badge gold';
+  return 'badge';
+}
+
+function renderEvent(ev) {
+  const badge = (ev.type === 'booked' && ev.showBookingBadge !== false)
+    ? `<div class="tl-booking-badge">✓ Prenotato</div>` : '';
+  const desc  = ev.description ? `<div class="tl-detail">${ev.description}</div>` : '';
+  const tip   = ev.tip   ? `<div class="tl-tip">${ev.tip}</div>`   : '';
+  const alert = ev.alert ? `<div class="tl-alert">${ev.alert}</div>` : '';
+  const guide = ev.placeGuide
+    ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ev.placeGuide)}&travelmode=transit" target="_blank" rel="noopener" class="tl-guide"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Guidami</a>`
+    : '';
+  return `<li class="tl-item">
+    <div class="${dotClass(ev.type)}"></div>
+    <div class="tl-time">${ev.time || ''}</div>
+    <div class="tl-content">${badge}<div class="tl-name">${ev.name}</div>${desc}${tip}${alert}${guide}</div>
+  </li>`;
+}
+
+function renderDay(day) {
+  const numCls = day.style === 'special' ? ' special' : day.style === 'gold' ? ' gold' : day.style === 'last' ? ' last' : '';
+  const badges = (day.badges || []).map(b => `<span class="${badgeClass(b.color)}">${b.text}</span>`).join('');
+  const zone = day.zone ? `<div class="zone-tag">${day.zone}</div>` : '';
+  const events = (day.events || []).map(ev => renderEvent(ev)).join('');
+  const label = day.dateLabel || formatShortDate(day.date);
+  const transportRows = (day.transportSummary || []).map(t =>
+    `<li>→ <b>${t.label}:</b> ${t.detail}</li>`
+  ).join('');
+  const transportTip = day.transportTip ? `<div class="tl-tip" style="margin-top:8px;">${day.transportTip}</div>` : '';
+  const transportBox = transportRows ? `<div class="tips-box"><h4>Come spostarsi oggi</h4><ul>${transportRows}</ul>${transportTip}</div>` : '';
+  return `<div class="day-card">
+    <div class="day-header">
+      <div class="day-number${numCls}"><div class="n">${day.n}</div><div class="d">${label}</div></div>
+      <div class="day-title-block"><div>
+        <div class="day-title">${day.title}</div>
+        <div class="day-subtitle">${day.subtitle || ''}</div>
+        <div class="day-badges">${badges}</div>
+      </div></div>
+    </div>
+    <div class="day-body">${zone}<ul class="timeline">${events}</ul>${transportBox}</div>
+  </div>`;
+}
+
+function renderDays(days) {
+  const wrapper = document.getElementById('daysWrapper');
+  wrapper.innerHTML = days.map(d => renderDay(d)).join('');
+  _daycards = Array.from(wrapper.querySelectorAll('.day-card'));
+}
+
+function renderMapSection(map) {
+  if (!map) return;
+  if (map.googleMyMapsId) {
+    document.getElementById('mapFrameWrapper').innerHTML =
+      `<iframe src="https://www.google.com/maps/d/embed?mid=${map.googleMyMapsId}&ehbc=2E312F" frameborder="0" allowfullscreen></iframe>`;
+  }
+  if (map.metroMapUrl) {
+    document.getElementById('tubeMapWrapper').innerHTML =
+      `<img src="${map.metroMapUrl}" class="tube-map-img" alt="Mappa metro">`;
+  }
+}
+
+function renderTickets(tickets, tripId) {
+  document.getElementById('bigliettiWrapper').innerHTML = (tickets || []).map(t => {
+    const pdfUrl = `/trips/${tripId}/${t.pdfPath}`;
+    return `<div class="ticket-card${t.isVip ? ' vip' : ''}">
+      <div class="ticket-info">
+        <div class="ticket-name">${t.name}</div>
+        <div class="ticket-day">${t.dayLabel}</div>
+      </div>
+      <a href="${pdfUrl}" target="_blank" rel="noopener" class="ticket-open">Apri ↗</a>
+    </div>`;
+  }).join('');
+}
+
+function renderFlightCard(leg, isReturn) {
+  const cls = isReturn ? ' ret' : '';
+  const rows = (leg.checklist || []).map(r =>
+    `<div class="ck-row"><span class="ck-badge ck-${r.badgeStyle}">${r.badge}</span>${r.text}</div>`
+  ).join('');
+  const title = leg.checklistTitle
+    ? `<p style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.5px;color:var(--muted);margin:16px 0 10px;">${leg.checklistTitle}</p>` : '';
+  const note = leg.note ? `<div class="tl-alert" style="margin-top:12px;">${leg.note}</div>` : '';
+  return `<div class="flight-card${cls}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div>
+        <div class="flight-iata">${leg.from.iata}</div>
+        <div class="flight-terminal">${leg.from.terminal}</div>
+        <div class="flight-hhmm">${leg.from.time}</div>
+      </div>
+      <div style="flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">
+        <div>${leg.flightNumber}</div>
+        <div style="margin:4px 0;">✈</div>
+        <div>${leg.duration || ''}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="flight-iata">${leg.to.iata}</div>
+        <div class="flight-terminal">${leg.to.terminal}</div>
+        <div class="flight-hhmm">${leg.to.time}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <a href="${leg.trackingUrl}" target="_blank" rel="noopener" class="flight-btn solid">Traccia volo ↗</a>
+      <a href="#" class="flight-btn outline">${leg.airline}</a>
+    </div>
+    ${title}${rows}${note}
+  </div>`;
+}
+
+function renderMarkets(markets) {
+  return (markets || []).map(m => {
+    const tagStyle = m.tagStyle === 'red'
+      ? 'background:#FEE;border:1px solid var(--red);color:var(--red);'
+      : m.tagStyle === 'blue'
+      ? 'background:#EEF2FF;border:1px solid var(--blue);color:var(--blue);'
+      : 'background:var(--light);border:1px solid rgba(0,0,0,0.12);color:var(--muted);';
+    const hours = (m.hours || '').replace(/\n/g, '<br>');
+    return `<div class="market-card">
+      <div class="market-header">
+        <div class="market-logo" style="background:${m.logoColor};">${m.logoLetter}</div>
+        <div><div class="market-name">${m.name}</div><div class="market-address">${m.address}</div></div>
+        <span class="market-tag" style="${tagStyle}">${m.tag}</span>
+      </div>
+      <div class="market-desc">${m.description}</div>
+      <div class="market-hours">${hours}</div>
+      <a class="market-map-link" href="${m.mapsDirectionsUrl}" target="_blank" rel="noopener">
+        <iframe class="market-map-frame" src="${m.osmEmbedUrl}" loading="lazy"></iframe>
+        <div class="market-map-overlay">Apri in Maps ↗</div>
+      </a>
+    </div>`;
+  }).join('');
+}
+
+function renderPracticalInfo(info) {
+  return `<div class="info-grid">${(info.items || []).map(item =>
+    `<div class="info-card"><div class="label">${item.label}</div><div class="value">${item.value}</div><div class="sub">${item.sub}</div></div>`
+  ).join('')}</div>`;
+}
+
+function renderAltro(bookingChecklist, oyster) {
+  const checkItems = (bookingChecklist || []).map(item => {
+    const icon = item.done ? '✅' : '⬜';
+    const link = item.url
+      ? ` <a href="${item.url}" target="_blank" rel="noopener" style="color:var(--blue);font-size:11px;text-decoration:none;">sito ↗</a>` : '';
+    const note = item.note ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">${item.note}</div>` : '';
+    return `<li style="display:flex;gap:10px;margin-bottom:12px;font-size:13px;align-items:flex-start;">
+      <span style="flex-shrink:0;">${icon}</span>
+      <div><span>${item.name}</span>${link}${note}</div>
+    </li>`;
+  }).join('');
+
+  oyster = oyster || {};
+  const oysterBody = (oyster.body || []).map(p =>
+    `<p style="font-size:13px;color:var(--ink);margin-bottom:10px;">${p}</p>`
+  ).join('');
+  const oysterPoints = (oyster.points || []).map(p =>
+    `<li style="font-size:12px;color:#2D3A6B;display:flex;gap:8px;margin-bottom:6px;"><span style="color:var(--blue);flex-shrink:0;">→</span>${p}</li>`
+  ).join('');
+  const oysterTip = oyster.tip ? `<div class="tl-tip" style="margin-top:12px;">${oyster.tip}</div>` : '';
+
+  return `<div style="margin-bottom:24px;">
+    <div class="section-title">Da prenotare</div>
+    <ul style="list-style:none;margin-top:12px;">${checkItems}</ul>
+  </div>
+  <div>
+    <div class="section-title">Oyster Card</div>
+    <div style="margin-top:12px;">${oysterBody}
+      <ul style="list-style:none;">${oysterPoints}</ul>
+      ${oysterTip}
+    </div>
+  </div>`;
+}
+
+function renderCurrencyConverter(currency) {
+  const { local, home, quickAmounts } = currency;
+  const chips = (quickAmounts || [5, 10, 20, 50]).map(a =>
+    `<button class="fx-chip" data-gbp="${a}">${local.flag} ${a}</button>`
+  ).join('');
+  return `<div class="fx-card">
+    <div class="fx-row">
+      <div class="fx-flag" id="fx-top-flag">${local.flag}</div>
+      <div class="fx-field"><label id="fx-top-label">${local.label}</label>
+        <input class="fx-input" id="fx-top" type="number" inputmode="decimal" placeholder="0">
+      </div>
+      <div class="fx-cur" id="fx-top-cur">${local.code}</div>
+    </div>
+    <div class="fx-actions">
+      <button class="fx-swap" id="fx-swap"><span>⇅ Inverti</span></button>
+      <button class="fx-swap" id="fx-clear"><span>✕ Cancella</span></button>
+    </div>
+    <div class="fx-row">
+      <div class="fx-flag" id="fx-bot-flag">${home.flag}</div>
+      <div class="fx-field"><label id="fx-bot-label">${home.label}</label>
+        <input class="fx-input" id="fx-bot" type="number" inputmode="decimal" placeholder="0">
+      </div>
+      <div class="fx-cur" id="fx-bot-cur">${home.code}</div>
+    </div>
+  </div>
+  <div class="fx-rate" id="fx-rate-info">1 ${local.code} = <b>… ${home.code}</b> · caricamento…</div>
+  <div class="fx-chips">${chips}</div>`;
+}
+
+function initCurrencyConverter(currency) {
+  const { local, home, fallbackRate } = currency;
+  const topIn = document.getElementById('fx-top');
+  const botIn = document.getElementById('fx-bot');
+  const rateInfo = document.getElementById('fx-rate-info');
+  if (!topIn || !botIn) return;
+
+  const META = { [local.code]: local, [home.code]: home };
+  let rate = fallbackRate;
+  let topCur = local.code;
+  const botCur = () => topCur === local.code ? home.code : local.code;
+  const parse = v => parseFloat(String(v).replace(',', '.').replace(/[^\d.]/g, ''));
+  const fmt = n => (Math.round(n * 100) / 100).toFixed(2);
+  const conv = (a, from, to) => from === to ? a : (from === local.code ? a * rate : a / rate);
+
+  function fromTop() {
+    const v = parse(topIn.value);
+    botIn.value = topIn.value.trim() === '' || isNaN(v) ? '' : fmt(conv(v, topCur, botCur()));
+  }
+  function fromBot() {
+    const v = parse(botIn.value);
+    topIn.value = botIn.value.trim() === '' || isNaN(v) ? '' : fmt(conv(v, botCur(), topCur));
+  }
+  topIn.addEventListener('input', fromTop);
+  botIn.addEventListener('input', fromBot);
+
+  function renderFx() {
+    const t = META[topCur], b = META[botCur()];
+    document.getElementById('fx-top-flag').textContent = t.flag;
+    document.getElementById('fx-top-label').textContent = t.label;
+    document.getElementById('fx-top-cur').textContent = t.code;
+    document.getElementById('fx-bot-flag').textContent = b.flag;
+    document.getElementById('fx-bot-label').textContent = b.label;
+    document.getElementById('fx-bot-cur').textContent = b.code;
+  }
+
+  document.querySelectorAll('.fx-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (topCur === local.code) { topIn.value = chip.dataset.gbp; fromTop(); }
+      else { botIn.value = chip.dataset.gbp; fromBot(); }
+    });
+  });
+
+  const swapBtn = document.getElementById('fx-swap');
+  if (swapBtn) swapBtn.addEventListener('click', () => {
+    topCur = botCur();
+    const tv = topIn.value; topIn.value = botIn.value; botIn.value = tv;
+    renderFx();
+  });
+
+  const clearBtn = document.getElementById('fx-clear');
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    topIn.value = ''; botIn.value = ''; topIn.focus();
+  });
+
+  function setRate(r, live) {
+    rate = r;
+    const fmtRate = (Math.round(r * 100) / 100).toFixed(2).replace('.', ',');
+    rateInfo.innerHTML = `1 ${local.code} = <b>${fmtRate} ${home.code}</b> · ${live ? 'aggiornato ora' : 'tasso offline'}`;
+    if (topIn.value.trim() !== '') fromTop();
+  }
+  renderFx();
+  setRate(fallbackRate, false);
+
+  fetch(`https://api.frankfurter.app/latest?from=${local.code}&to=${home.code}`)
+    .then(r => r.json())
+    .then(d => { if (d && d.rates && d.rates[home.code]) setRate(d.rates[home.code], true); })
+    .catch(() => {});
+}
+
+function renderInfoSection(trip) {
+  const PILLS = [
+    { id: 'cambio',       label: 'Cambio' },
+    { id: 'voli',         label: 'Voli' },
+    { id: 'supermercati', label: 'Supermercati' },
+    { id: 'pratiche',     label: 'Pratiche' },
+    { id: 'altro',        label: 'Altro' },
+  ];
+  document.getElementById('infoPillNav').innerHTML = PILLS.map((p, i) =>
+    `<div class="info-pill${i === 0 ? ' active' : ''}" data-sub="${p.id}">${p.label}</div>`
+  ).join('');
+
+  document.getElementById('info-sub-cambio').innerHTML = renderCurrencyConverter(trip.meta.currency);
+  document.getElementById('info-sub-voli').innerHTML =
+    (trip.flights.outbound ? renderFlightCard(trip.flights.outbound, false) : '') +
+    (trip.flights.return   ? renderFlightCard(trip.flights.return,   true)  : '');
+  document.getElementById('info-sub-supermercati').innerHTML = renderMarkets(trip.markets);
+  document.getElementById('info-sub-pratiche').innerHTML = renderPracticalInfo(trip.practicalInfo || { items: [] });
+  document.getElementById('info-sub-altro').innerHTML = renderAltro(trip.bookingChecklist, trip.oyster);
+}
+
+function initInfoPills() {
+  const infoSubs = ['cambio', 'voli', 'supermercati', 'pratiche', 'altro'];
+  document.querySelectorAll('.info-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const sub = pill.dataset.sub;
+      document.querySelectorAll('.info-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      infoSubs.forEach(s => {
+        const el = document.getElementById('info-sub-' + s);
+        if (el) el.style.display = s === sub ? '' : 'none';
+      });
+    });
+  });
+}
+
+function initNavigation() {
+  const SECTIONS = ['itinerario', 'mappa', 'metro', 'info', 'biglietti'];
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const sec = item.dataset.section;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      SECTIONS.forEach(s => {
+        const el = document.getElementById(s + '-section');
+        if (el) el.style.display = s === sec ? '' : 'none';
+      });
+      const dayTabs = document.getElementById('dayTabs');
+      dayTabs.style.display = sec === 'itinerario' ? '' : 'none';
+      document.body.style.paddingTop = sec === 'itinerario'
+        ? 'calc(100px + env(safe-area-inset-top, 0px))'
+        : 'calc(46px + env(safe-area-inset-top, 0px))';
+      // iOS PWA nav fix: mappa/metro are position:fixed with no scrollable content
+      // → body stops scrolling → nav floats above real bottom. Force body scrollable.
+      document.body.style.minHeight = (sec === 'mappa' || sec === 'metro') ? '200vh' : '';
+      window.scrollTo(0, 0);
+    });
+  });
+}
+
+function initSearch(days) {
+  const searchBtn = document.getElementById('searchBtn');
+  const searchInput = document.getElementById('searchInput');
+  const searchResultsEl = document.getElementById('searchResults');
+  const searchSection = document.getElementById('search-section');
+  const searchClose = document.getElementById('searchClose');
+  const SECTIONS = ['itinerario', 'mappa', 'metro', 'info', 'biglietti'];
+
+  const searchIndex = [];
+  document.querySelectorAll('.day-card').forEach((card, dayIdx) => {
+    if (dayIdx >= days.length) return;
+    const d = days[dayIdx];
+    card.querySelectorAll('.tl-item').forEach(item => {
+      const nameEl = item.querySelector('.tl-name');
+      if (!nameEl) return;
+      const contentEl = item.querySelector('.tl-content');
+      searchIndex.push({
+        text: (contentEl || nameEl).textContent.trim(),
+        displayText: nameEl.textContent.trim(),
+        dayIdx,
+        dayN: d.n,
+        dayDate: d.dateLabel || formatShortDate(d.date),
+      });
+    });
+  });
+
+  let prevSection = 'itinerario';
+
+  function openSearch() {
+    const activeNav = document.querySelector('.nav-item.active');
+    prevSection = activeNav ? activeNav.dataset.section : 'itinerario';
+    SECTIONS.forEach(s => {
+      const el = document.getElementById(s + '-section');
+      if (el) el.style.display = 'none';
+    });
+    searchSection.style.display = '';
+    document.getElementById('dayTabs').style.display = 'none';
+    document.body.style.paddingTop = 'calc(46px + env(safe-area-inset-top, 0px))';
+    document.body.style.minHeight = '';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    searchInput.value = '';
+    searchResultsEl.innerHTML = '<div class="search-hint">Cerca tra le attrazioni del viaggio per scoprire in quale giorno sono previste.</div>';
+    setTimeout(() => searchInput.focus(), 80);
+  }
+
+  function closeSearch() {
+    searchSection.style.display = 'none';
+    searchInput.value = '';
+    const navItem = document.querySelector(`.nav-item[data-section="${prevSection}"]`);
+    if (navItem) navItem.click();
+  }
+
+  function renderResults(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      searchResultsEl.innerHTML = '<div class="search-hint">Cerca tra le attrazioni del viaggio per scoprire in quale giorno sono previste.</div>';
+      return;
+    }
+    const matches = searchIndex.filter(item => item.text.toLowerCase().includes(q));
+    if (!matches.length) {
+      searchResultsEl.innerHTML = `<div class="search-empty">Nessun risultato per "<b>${query}</b>"</div>`;
+      return;
+    }
+    searchResultsEl.innerHTML = matches.map(item => `
+      <div class="search-result-item" data-day-idx="${item.dayIdx}">
+        <div class="search-result-day">
+          <div class="search-result-day-n">G${item.dayN}</div>
+          <div class="search-result-day-d">${item.dayDate}</div>
+        </div>
+        <div class="search-result-name">${item.displayText}</div>
+        <svg class="search-result-arrow" viewBox="0 0 24 24" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`
+    ).join('');
+    searchResultsEl.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.dayIdx);
+        closeSearch();
+        setTimeout(() => selectDay(idx), 60);
+      });
+    });
+  }
+
+  searchBtn.addEventListener('click', openSearch);
+  searchClose.addEventListener('click', closeSearch);
+  searchInput.addEventListener('input', () => renderResults(searchInput.value));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && searchSection.style.display !== 'none') closeSearch();
+  });
+}
+
+function cacheTripAssets(trip) {
+  if (!navigator.serviceWorker?.controller) return;
+  navigator.serviceWorker.controller.postMessage({
+    type: 'CACHE_TRIP',
+    tripId: trip.meta.id,
+    assets: (trip.tickets || []).map(t => `/trips/${trip.meta.id}/${t.pdfPath}`)
+  });
+}
+
+async function main() {
+  try {
+    const activeRes = await fetch('/trips/_active.json');
+    if (!activeRes.ok) throw new Error('No active trip');
+    const active = await activeRes.json();
+    const tripId = active.id;
+
+    const tripRes = await fetch(`/trips/${tripId}/trip.json`);
+    if (!tripRes.ok) throw new Error('Trip not found');
+    const trip = await tripRes.json();
+
+    applyTheme(trip.meta.theme);
+    renderHeader(trip.meta);
+    renderDayTabs(trip.days);
+    renderDays(trip.days);
+    renderMapSection(trip.map);
+    renderTickets(trip.tickets || [], tripId);
+    renderInfoSection(trip);
+
+    initNavigation();
+    initInfoPills();
+    initCurrencyConverter(trip.meta.currency);
+    initSearch(trip.days);
+    selectTodayOrFirst(trip);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(() => cacheTripAssets(trip));
+    }
+  } catch (err) {
+    document.getElementById('daysWrapper').innerHTML =
+      `<div class="loading-screen"><div style="font-size:48px;">✈</div><h3>Viaggio non trovato</h3><p>Connessione necessaria per il primo accesso al viaggio.</p></div>`;
+    console.error('Trip load failed:', err);
+  }
+}
+
+main();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "trips": [
+    {
+      "id": "london-2026",
+      "name": "Londra 2026",
+      "subtitle": "Il Nostro Viaggio",
+      "destination": "London, UK",
+      "flag": "🇬🇧",
+      "dates": "29 Lug – 6 Ago 2026",
+      "startDate": "2026-07-29",
+      "endDate": "2026-08-06"
+    }
+  ]
+}

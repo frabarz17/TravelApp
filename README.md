@@ -2,7 +2,7 @@
 
 PWA personale per la gestione di viaggi di famiglia. Un motore generico riutilizzabile: aggiungi un viaggio tramite l'admin online, e l'app si aggiorna automaticamente.
 
-**Zero framework. Zero build step. Zero backend.** Solo HTML/CSS/JS puro + Vercel + GitHub.
+**Zero framework. Zero build step.** Solo HTML/CSS/JS puro + Vercel + GitHub.
 
 ---
 
@@ -15,7 +15,7 @@ trips/_active.json     ← { "id": "london-2026" } — quale viaggio mostrare
 trips/index.json       ← elenco di tutti i viaggi
 ```
 
-La PWA fetcha `_active.json` → `trip.json` a runtime e costruisce tutta l'interfaccia in JavaScript. L'admin scrive questi file direttamente su GitHub via REST API — ogni salvataggio triggera un Vercel redeploy in ~30 secondi.
+La PWA fetcha `_active.json` → `trip.json` a runtime e costruisce tutta l'interfaccia in JavaScript. L'admin scrive questi file su GitHub tramite una serverless function Vercel (`/api/github`) — ogni salvataggio triggera un redeploy in ~30 secondi. Il token GitHub non è mai esposto al browser.
 
 ---
 
@@ -27,16 +27,23 @@ La PWA fetcha `_active.json` → `trip.json` a runtime e costruisce tutta l'inte
 gh repo create frabarz17/TravelApp --public --source=. --push
 ```
 
-Poi su [vercel.com](https://vercel.com): **New Project** → importa `frabarz17/TravelApp` → Deploy. Nessuna configurazione necessaria: Vercel serve i file statici così com'è.
+Poi su [vercel.com](https://vercel.com): **New Project** → importa `frabarz17/TravelApp` → Deploy.
 
-### 2. Crea un Personal Access Token GitHub
+### 2. Configura le variabili d'ambiente su Vercel
 
-Su GitHub: **Settings → Developer Settings → Personal Access Tokens → Fine-grained tokens**  
-Scope richiesto: **Contents** (Read + Write) sulla repo TravelApp.
+Su Vercel: **Settings → Environment Variables** → aggiungi:
+
+| Variabile | Valore |
+|---|---|
+| `GITHUB_TOKEN` | PAT GitHub con scope `repo` (Settings → Developer Settings → Personal access tokens → Tokens classic) |
+| `GITHUB_REPO` | `frabarz17/TravelApp` |
+| `ADMIN_PASSWORD` | Una password a tua scelta per accedere all'admin |
+
+Dopo aver salvato le variabili, fai un redeploy manuale da Vercel (o aspetta il prossimo push).
 
 ### 3. Accedi all'admin
 
-Apri `https://tuo-dominio.vercel.app/admin` → inserisci `frabarz17/TravelApp` e il PAT → Accedi.
+Apri `https://tuo-dominio.vercel.app/admin` → inserisci la password scelta → Accedi.
 
 ---
 
@@ -95,7 +102,8 @@ Installabile su iPhone/Android come PWA. Funziona offline dopo il primo caricame
 | Frontend | HTML/CSS/JS puro | Zero build step, deploy immediato |
 | Admin reattività | Alpine.js (CDN) | Minimo per gestire form nidificati |
 | Database | File JSON nel repo | Niente backend, versioning gratis |
-| API | GitHub REST API | Lettura/scrittura JSON dal browser |
+| API | GitHub REST API (via proxy) | Lettura/scrittura JSON, token lato server |
+| Serverless | Vercel Functions (`/api/github.js`) | Proxy sicuro: token mai esposto al browser |
 | Deploy | Vercel | Auto-deploy su push, CDN globale |
 | Offline | Service Worker | Cache PDF biglietti + stale-while-revalidate |
 
@@ -112,7 +120,7 @@ Il viaggio di esempio completo è in [`trips/london-2026/trip.json`](trips/londo
 ## Git workflow
 
 ```bash
-git add index.html admin/ trips/
+git add index.html admin/ api/ trips/
 git commit -m "descrizione"
 git push   # Vercel deploya in ~30s
 ```

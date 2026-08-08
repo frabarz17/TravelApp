@@ -6,16 +6,17 @@ Linee guida operative per Claude Code (e altri agenti) che lavorano su questo re
 
 Questo progetto è una **PWA statica multi-viaggio** senza build step, framework o backend.  
 Ogni viaggio è descritto da un `trips/<id>/trip.json`. La PWA lo fetcha a runtime.  
-L'admin (`/admin`) scrive direttamente su GitHub via REST API.
+L'admin (`/admin`) scrive su GitHub tramite la serverless function `/api/github.js` (proxy Vercel). Il token GitHub vive nelle env vars Vercel, mai nel browser.
 
 **Leggi sempre `CLAUDE.md` prima di iniziare qualsiasi modifica** — contiene le regole critiche (iOS fix, UTF-8 base64, schema dati).
 
 ## Come esplorare il codice
 
 ```
-index.html       — tutto CSS (righe 1–460) + HTML shell + JS rendering engine
-sw.js            — service worker (~82 righe, semplice)
-admin/index.html — admin SPA con Alpine.js (~1018 righe)
+index.html          — tutto CSS (righe 1–460) + HTML shell + JS rendering engine
+sw.js               — service worker (~82 righe, semplice)
+admin/index.html    — admin SPA con Alpine.js
+api/github.js       — serverless function Vercel: proxy GitHub API con auth password
 trips/london-2026/trip.json — esempio completo di dati viaggio
 ```
 
@@ -62,8 +63,9 @@ git push
 cd /Users/francescobarzano/claude/TravelApp
 python3 -m http.server 8765
 # Apri http://localhost:8765 → PWA
-# Apri http://localhost:8765/admin → Admin (richiede PAT GitHub)
 ```
+
+**Nota:** l'admin (`/admin`) in locale non funziona — la serverless function `/api/github` richiede l'ambiente Vercel con le env vars. Per testare l'admin usa direttamente il deploy Vercel.
 
 Il service worker non si attiva su localhost in modo normale; usa Chrome DevTools → Application → Service Workers per simulare offline.
 

@@ -7,7 +7,7 @@ Istruzioni per Claude Code. Leggere prima di qualsiasi modifica.
 PWA multi-viaggio (HTML/CSS/JS puro, zero framework, zero build step). Un motore generico riutilizzabile per qualsiasi viaggio futuro. Deployato su Vercel con auto-deploy su ogni push a `main`.
 
 Il contenuto di ogni viaggio è separato dalla logica: tutto sta in `trips/<id>/trip.json`.  
-L'admin (`/admin`) legge e scrive via GitHub REST API senza bisogno di toccare il codice.
+L'admin (`/admin`) legge e scrive via GitHub REST API tramite la serverless function `/api/github.js`. Il token GitHub è nelle env vars Vercel — mai esposto al browser.
 
 ## Stato implementazione
 
@@ -33,8 +33,10 @@ TravelApp/
 ├── sw.js                   ← Service worker data-driven (82 righe)
 ├── manifest.json           ← PWA manifest (aggiornabile dall'admin al set-active)
 ├── vercel.json             ← cleanUrls + rewrite /admin → /admin/index.html
+├── api/
+│   └── github.js           ← Serverless function Vercel: proxy GitHub API (auth via ADMIN_PASSWORD)
 ├── admin/
-│   └── index.html          ← Admin SPA Alpine.js + GitHub API (1018 righe)
+│   └── index.html          ← Admin SPA Alpine.js, chiama /api/github
 ├── trips/
 │   ├── _active.json        ← { "id": "london-2026" } — viaggio attivo
 │   ├── index.json          ← Array di tutti i viaggi (per trip selector)
@@ -139,9 +141,14 @@ await writeFileBinary(path, base64, message); // NON encodeURIComponent
 
 **URL:** `/admin` → `/admin/index.html` (rewrite in vercel.json)
 
-**Auth:** PAT GitHub in `localStorage` (`travelapp_auth`). Scope richiesto: `repo`.
+**Auth:** password generica in `localStorage` (`travelapp_auth`). La password viene verificata server-side dalla function `/api/github` contro la env var `ADMIN_PASSWORD`.
 
-**Come funziona:** Alpine.js legge/scrive via GitHub REST API. Ogni salvataggio triggera Vercel redeploy (~30s). Il viaggio attivo si imposta con il tasto "Imposta attivo" → scrive `trips/_active.json`.
+**Variabili d'ambiente Vercel richieste:**
+- `GITHUB_TOKEN` — PAT GitHub con scope `repo`
+- `GITHUB_REPO` — es. `frabarz17/TravelApp`
+- `ADMIN_PASSWORD` — password di accesso all'admin
+
+**Come funziona:** Alpine.js invia tutte le chiamate a `/api/github?path=...` con header `x-admin-password`. La serverless function verifica la password e proxia a GitHub API usando il token. Ogni salvataggio triggera Vercel redeploy (~30s). Il viaggio attivo si imposta con il tasto "Imposta attivo" → scrive `trips/_active.json`.
 
 **Tab editor:** Meta & Tema · Hotel · Voli · Giorni & Eventi · Biglietti · Info Locale · Mappe
 
@@ -201,7 +208,7 @@ if (!active.id) {
 
 ```bash
 # Workflow standard
-git add index.html sw.js admin/ trips/
+git add index.html sw.js admin/ api/ trips/
 git commit -m "descrizione"
 git push   # → Vercel auto-deploya
 
